@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f5f7;
+      min-height: 100vh;
+    }
+
+    /* ── header ── */
+    header {
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .logo.teacher { color: #4f46e5; }
+    .logo.student  { color: #16a34a; }
+
+    nav { display: flex; gap: 6px; }
+    nav a {
+      font-size: 13px;
+      font-weight: 500;
+      color: #6b7280;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background 0.12s, color 0.12s;
+    }
+    nav a:hover { background: #f3f4f6; color: #111827; }
+    nav a.active { background: #eef2ff; color: #4338ca; }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600;
+    }
+    .avatar.teacher { background: #eef2ff; color: #4338ca; }
+    .avatar.student  { background: #f0fdf4; color: #166534; }
+
+    .user-name { font-size: 14px; font-weight: 500; color: #111827; }
+    .user-role  { font-size: 12px; color: #6b7280; }
+
+    .logout-btn {
+      background: none; border: 1px solid #d1d5db;
+      border-radius: 6px; padding: 6px 12px;
+      font-size: 13px; color: #374151; cursor: pointer;
+    }
+    .logout-btn:hover { background: #f9fafb; }
+
+    /* ── main ── */
+    main { padding: 2rem; max-width: 760px; margin: 0 auto; }
+
+    .page-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 1.75rem;
+    }
+
+    .page-header h1 { font-size: 22px; font-weight: 600; color: #111827; }
+    .page-header p  { font-size: 14px; color: #6b7280; margin-top: 3px; }
+
+    .btn-primary {
+      background: #4f46e5; color: white; border: none;
+      border-radius: 8px; padding: 9px 16px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      white-space: nowrap; transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #4338ca; }
+
+    /* ── question cards (teacher view) ── */
+    .q-list { display: flex; flex-direction: column; gap: 14px; }
+
+    .q-card {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 12px; padding: 1.25rem;
+    }
+
+    .q-card-header {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; gap: 12px; margin-bottom: 10px;
+    }
+
+    .q-number {
+      font-size: 11px; font-weight: 600;
+      background: #eef2ff; color: #4338ca;
+      padding: 3px 8px; border-radius: 99px;
+      white-space: nowrap;
+    }
+
+    .q-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    .btn-sm {
+      font-size: 12px; font-weight: 500; padding: 5px 10px;
+      border-radius: 6px; cursor: pointer; border: 1px solid #d1d5db;
+      background: white; color: #374151; transition: background 0.12s;
+    }
+    .btn-sm:hover { background: #f3f4f6; }
+    .btn-sm.danger { border-color: #fca5a5; color: #b91c1c; }
+    .btn-sm.danger:hover { background: #fef2f2; }
+
+    .q-text { font-size: 15px; font-weight: 500; color: #111827; margin-bottom: 10px; }
+
+    .options { display: flex; flex-direction: column; gap: 6px; }
+
+    .option {
+      font-size: 13px; color: #374151;
+      padding: 7px 10px; border-radius: 7px;
+      background: #f9fafb; border: 1px solid #f3f4f6;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .option.correct {
+      background: #f0fdf4; border-color: #bbf7d0; color: #166534; font-weight: 500;
+    }
+    .option-dot {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 1.5px solid #d1d5db; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .option.correct .option-dot {
+      background: #16a34a; border-color: #16a34a; color: white; font-size: 10px;
+    }
+
+    /* ── modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.35);
+      align-items: center; justify-content: center;
+      z-index: 100; padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: white; border-radius: 14px;
+      padding: 1.75rem; width: 100%; max-width: 520px;
+      max-height: 90vh; overflow-y: auto;
+    }
+
+    .modal h2 { font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 1.25rem; }
+
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 5px; }
+
+    .field input[type="text"] {
+      width: 100%; padding: 9px 11px;
+      border: 1.5px solid #d1d5db; border-radius: 8px;
+      font-size: 14px; color: #111827; outline: none;
+    }
+    .field input[type="text"]:focus { border-color: #4f46e5; }
+
+    .options-edit { display: flex; flex-direction: column; gap: 8px; }
+
+    .option-row { display: flex; align-items: center; gap: 8px; }
+    .option-row input[type="radio"] { accent-color: #4f46e5; flex-shrink: 0; }
+    .option-row input[type="text"] {
+      flex: 1; padding: 8px 10px;
+      border: 1.5px solid #d1d5db; border-radius: 7px;
+      font-size: 13px; color: #111827; outline: none;
+    }
+    .option-row input[type="text"]:focus { border-color: #4f46e5; }
+    .option-hint { font-size: 11px; color: #9ca3af; }
+
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; }
+
+    .btn-cancel {
+      background: none; border: 1px solid #d1d5db; border-radius: 7px;
+      padding: 8px 14px; font-size: 14px; color: #374151; cursor: pointer;
+    }
+    .btn-cancel:hover { background: #f9fafb; }
+
+    .modal-error {
+      font-size: 13px; color: #b91c1c;
+      background: #fef2f2; padding: 8px 12px;
+      border-radius: 7px; margin-bottom: 1rem; display: none;
+    }
+
+    /* ── student quiz view ── */
+    .quiz-wrap { display: flex; flex-direction: column; gap: 18px; }
+
+    .quiz-card {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 12px; padding: 1.25rem;
+    }
+
+    .quiz-q { font-size: 15px; font-weight: 500; color: #111827; margin-bottom: 12px; }
+
+    .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+
+    .quiz-option {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 8px;
+      border: 1.5px solid #e5e7eb; cursor: pointer;
+      font-size: 14px; color: #374151;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .quiz-option:hover { border-color: #a5b4fc; background: #f5f3ff; }
+    .quiz-option.selected { border-color: #6366f1; background: #eef2ff; color: #3730a3; font-weight: 500; }
+    .quiz-option.correct  { border-color: #4ade80; background: #f0fdf4; color: #166534; font-weight: 500; }
+    .quiz-option.wrong    { border-color: #fca5a5; background: #fef2f2; color: #b91c1c; }
+
+    .quiz-option input[type="radio"] { accent-color: #4f46e5; pointer-events: none; }
+
+    .quiz-submit {
+      background: #4f46e5; color: white; border: none;
+      border-radius: 8px; padding: 11px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      width: 100%; margin-top: 1.5rem; transition: background 0.15s;
+    }
+    .quiz-submit:hover { background: #4338ca; }
+    .quiz-submit:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+    .result-banner {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 12px; padding: 1.5rem;
+      text-align: center; display: none;
+    }
+    .result-score { font-size: 36px; font-weight: 700; color: #111827; }
+    .result-label { font-size: 14px; color: #6b7280; margin-top: 4px; }
+    .result-retake {
+      margin-top: 1rem; background: none;
+      border: 1px solid #d1d5db; border-radius: 7px;
+      padding: 8px 16px; font-size: 14px; color: #374151; cursor: pointer;
+    }
+    .result-retake:hover { background: #f9fafb; }
+
+    .empty {
+      text-align: center; padding: 3rem 1rem;
+      color: #9ca3af; font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:1.5rem">
+    <div class="logo" id="logo">🏫 EduPortal</div>
+    <nav>
+      <a href="" id="dash-link">Dashboard</a>
+      <a href="quiz.html" class="active">Quiz</a>
+    </nav>
+  </div>
+  <div class="header-right">
+    <div class="avatar" id="avatar">?</div>
+    <div>
+      <div class="user-name" id="user-name">—</div>
+      <div class="user-role" id="user-role">—</div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Log out</button>
+  </div>
+</header>
+
+<main>
+  <!-- teacher view -->
+  <div id="teacher-view" style="display:none">
+    <div class="page-header">
+      <div>
+        <h1>Quiz questions</h1>
+        <p>Add, edit, or delete MCQ questions. Students see these when they take the quiz.</p>
+      </div>
+      <button class="btn-primary" onclick="openModal()">+ Add question</button>
+    </div>
+
+    <div class="q-list" id="q-list"></div>
+    <div class="empty" id="teacher-empty" style="display:none">No questions yet. Add your first one above.</div>
+  </div>
+
+  <!-- student view -->
+  <div id="student-view" style="display:none">
+    <div class="page-header">
+      <div>
+        <h1>Quiz</h1>
+        <p>Choose the best answer for each question, then submit.</p>
+      </div>
+    </div>
+
+    <div class="result-banner" id="result-banner">
+      <div class="result-score" id="result-score">—</div>
+      <div class="result-label" id="result-label">—</div>
+      <button class="result-retake" onclick="retakeQuiz()">Retake quiz</button>
+    </div>
+
+    <div class="quiz-wrap" id="quiz-wrap"></div>
+    <div class="empty" id="student-empty" style="display:none">No questions available yet. Check back later.</div>
+    <button class="quiz-submit" id="quiz-submit" onclick="submitQuiz()" style="display:none">Submit answers</button>
+  </div>
+</main>
+
+<!-- add/edit modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">Add question</h2>
+    <div class="modal-error" id="modal-error"></div>
+
+    <div class="field">
+      <label>Question text</label>
+      <input type="text" id="q-text-input" placeholder="e.g. What is the speed of light?" />
+    </div>
+
+    <div class="field">
+      <label>Options <span class="option-hint">(select the correct answer)</span></label>
+      <div class="options-edit">
+        <div class="option-row">
+          <input type="radio" name="correct" value="0" />
+          <input type="text" id="opt0" placeholder="Option A" />
+        </div>
+        <div class="option-row">
+          <input type="radio" name="correct" value="1" />
+          <input type="text" id="opt1" placeholder="Option B" />
+        </div>
+        <div class="option-row">
+          <input type="radio" name="correct" value="2" />
+          <input type="text" id="opt2" placeholder="Option C" />
+        </div>
+        <div class="option-row">
+          <input type="radio" name="correct" value="3" />
+          <input type="text" id="opt3" placeholder="Option D" />
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveQuestion()">Save question</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const LETTERS = ['A','B','C','D'];
+
+  let user = null;
+  let questions = JSON.parse(localStorage.getItem('quiz_questions') || '[]');
+  let editingIndex = null;
+  let studentAnswers = {};
+  let submitted = false;
+
+  function saveQs() {
+    localStorage.setItem('quiz_questions', JSON.stringify(questions));
+  }
+
+  /* ── auth ── */
+  user = JSON.parse(sessionStorage.getItem('user') || 'null');
+  if (!user) { window.location.href = 'index.html'; }
+
+  const name = user.name.charAt(0).toUpperCase() + user.name.slice(1);
+  document.getElementById('user-name').textContent = name;
+  document.getElementById('user-role').textContent = user.role === 'teacher' ? 'Instructor' : 'Learner';
+  document.getElementById('avatar').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('avatar').classList.add(user.role);
+  document.getElementById('logo').classList.add(user.role);
+  document.getElementById('dash-link').href = user.role === 'teacher' ? 'dashboard-teacher.html' : 'dashboard-student.html';
+
+  if (user.role === 'teacher') {
+    document.getElementById('teacher-view').style.display = 'block';
+    renderTeacher();
+  } else {
+    document.getElementById('student-view').style.display = 'block';
+    renderStudent();
+  }
+
+  /* ── teacher ── */
+  function renderTeacher() {
+    const list = document.getElementById('q-list');
+    const empty = document.getElementById('teacher-empty');
+    list.innerHTML = '';
+
+    if (questions.length === 0) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+
+    questions.forEach((q, i) => {
+      const card = document.createElement('div');
+      card.className = 'q-card';
+      card.innerHTML = `
+        <div class="q-card-header">
+          <span class="q-number">Q${i + 1}</span>
+          <div class="q-actions">
+            <button class="btn-sm" onclick="editQuestion(${i})">Edit</button>
+            <button class="btn-sm danger" onclick="deleteQuestion(${i})">Delete</button>
+          </div>
+        </div>
+        <div class="q-text">${q.text}</div>
+        <div class="options">
+          ${q.options.map((o, oi) => `
+            <div class="option ${oi === q.correct ? 'correct' : ''}">
+              <div class="option-dot">${oi === q.correct ? '✓' : ''}</div>
+              <span>${LETTERS[oi]}. ${o}</span>
+            </div>`).join('')}
+        </div>`;
+      list.appendChild(card);
+    });
+  }
+
+  function deleteQuestion(i) {
+    if (!confirm('Delete this question?')) return;
+    questions.splice(i, 1);
+    saveQs();
+    renderTeacher();
+  }
+
+  function editQuestion(i) {
+    editingIndex = i;
+    const q = questions[i];
+    document.getElementById('modal-title').textContent = 'Edit question';
+    document.getElementById('q-text-input').value = q.text;
+    q.options.forEach((o, oi) => { document.getElementById('opt' + oi).value = o; });
+    document.querySelectorAll('input[name="correct"]').forEach(r => {
+      r.checked = parseInt(r.value) === q.correct;
+    });
+    openModal();
+  }
+
+  function openModal() {
+    if (editingIndex === null) {
+      document.getElementById('modal-title').textContent = 'Add question';
+      document.getElementById('q-text-input').value = '';
+      ['opt0','opt1','opt2','opt3'].forEach(id => document.getElementById(id).value = '');
+      document.querySelectorAll('input[name="correct"]').forEach(r => r.checked = false);
+    }
+    document.getElementById('modal-error').style.display = 'none';
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    editingIndex = null;
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  function saveQuestion() {
+    const text = document.getElementById('q-text-input').value.trim();
+    const opts = ['opt0','opt1','opt2','opt3'].map(id => document.getElementById(id).value.trim());
+    const correctEl = document.querySelector('input[name="correct"]:checked');
+    const err = document.getElementById('modal-error');
+
+    if (!text) { err.textContent = 'Question text is required.'; err.style.display = 'block'; return; }
+    if (opts.some(o => !o)) { err.textContent = 'All four options are required.'; err.style.display = 'block'; return; }
+    if (!correctEl) { err.textContent = 'Please select the correct answer.'; err.style.display = 'block'; return; }
+
+    const q = { text, options: opts, correct: parseInt(correctEl.value) };
+
+    if (editingIndex !== null) {
+      questions[editingIndex] = q;
+    } else {
+      questions.push(q);
+    }
+
+    saveQs();
+    closeModal();
+    renderTeacher();
+  }
+
+  /* ── student ── */
+  function renderStudent() {
+    studentAnswers = {};
+    submitted = false;
+    const wrap = document.getElementById('quiz-wrap');
+    const empty = document.getElementById('student-empty');
+    const submitBtn = document.getElementById('quiz-submit');
+    const banner = document.getElementById('result-banner');
+
+    wrap.innerHTML = '';
+    banner.style.display = 'none';
+
+    if (questions.length === 0) {
+      empty.style.display = 'block';
+      submitBtn.style.display = 'none';
+      return;
+    }
+
+    empty.style.display = 'none';
+    submitBtn.style.display = 'block';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit answers';
+
+    questions.forEach((q, qi) => {
+      const card = document.createElement('div');
+      card.className = 'quiz-card';
+      card.innerHTML = `
+        <div class="quiz-q"><strong>Q${qi + 1}.</strong> ${q.text}</div>
+        <div class="quiz-options" id="opts-${qi}">
+          ${q.options.map((o, oi) => `
+            <label class="quiz-option" id="opt-${qi}-${oi}" onclick="selectOption(${qi},${oi})">
+              <input type="radio" name="q${qi}" value="${oi}" />
+              <span>${LETTERS[oi]}. ${o}</span>
+            </label>`).join('')}
+        </div>`;
+      wrap.appendChild(card);
+    });
+  }
+
+  function selectOption(qi, oi) {
+    if (submitted) return;
+    studentAnswers[qi] = oi;
+
+    questions[qi].options.forEach((_, i) => {
+      const el = document.getElementById(`opt-${qi}-${i}`);
+      el.classList.remove('selected');
+    });
+    document.getElementById(`opt-${qi}-${oi}`).classList.add('selected');
+  }
+
+  function submitQuiz() {
+    if (Object.keys(studentAnswers).length < questions.length) {
+      alert('Please answer all questions before submitting.');
+      return;
+    }
+
+    submitted = true;
+    let score = 0;
+
+    questions.forEach((q, qi) => {
+      const chosen = studentAnswers[qi];
+      q.options.forEach((_, oi) => {
+        const el = document.getElementById(`opt-${qi}-${oi}`);
+        el.classList.remove('selected');
+        if (oi === q.correct) el.classList.add('correct');
+        else if (oi === chosen) el.classList.add('wrong');
+      });
+      if (chosen === q.correct) score++;
+    });
+
+    const pct = Math.round((score / questions.length) * 100);
+    document.getElementById('result-score').textContent = `${score} / ${questions.length}`;
+    document.getElementById('result-label').textContent = `${pct}% — ${pct >= 70 ? 'Well done!' : 'Keep practising!'}`;
+    document.getElementById('result-banner').style.display = 'block';
+    document.getElementById('quiz-submit').disabled = true;
+    document.getElementById('quiz-submit').textContent = 'Submitted';
+    document.getElementById('result-banner').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function retakeQuiz() { renderStudent(); }
+
+  function logout() {
+    sessionStorage.removeItem('user');
+    window.location.href = 'index.html';
+  }
+
+  document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>
+</body>
+</html>

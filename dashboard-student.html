@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f0fdf4; min-height: 100vh; }
+
+    /* ── top nav ── */
+    header {
+      background: white;
+      border-bottom: 1px solid #d1fae5;
+      padding: 0 2rem;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { font-size: 16px; font-weight: 700; color: #15803d; display: flex; align-items: center; gap: 8px; }
+    .top-nav { display: flex; gap: 4px; }
+    .top-nav a { font-size: 13px; font-weight: 500; color: #6b7280; text-decoration: none; padding: 6px 12px; border-radius: 6px; transition: background 0.12s, color 0.12s; }
+    .top-nav a:hover { background: #f0fdf4; color: #15803d; }
+    .top-nav a.active { background: #dcfce7; color: #15803d; font-weight: 600; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; }
+    .user-name { font-size: 14px; font-weight: 600; color: #111827; }
+    .user-role { font-size: 11px; color: #6b7280; }
+    .logout-btn { background: none; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 12px; font-size: 13px; color: #374151; cursor: pointer; }
+    .logout-btn:hover { background: #f9fafb; }
+
+    /* ── hero banner ── */
+    .hero {
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+      color: white;
+      padding: 2rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .hero h1 { font-size: 24px; font-weight: 700; }
+    .hero p  { font-size: 14px; opacity: 0.85; margin-top: 4px; }
+    .hero-stat { text-align: center; background: rgba(255,255,255,0.15); border-radius: 12px; padding: 1rem 1.5rem; }
+    .hero-stat-value { font-size: 32px; font-weight: 700; }
+    .hero-stat-label { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+    .hero-stats { display: flex; gap: 12px; }
+
+    /* ── content ── */
+    main { padding: 2rem 2.5rem; max-width: 1000px; margin: 0 auto; }
+
+    /* ── quick stats ── */
+    .quick-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 2rem; }
+    .qs-card { background: white; border-radius: 12px; border: 1px solid #d1fae5; padding: 1.1rem 1.25rem; display: flex; align-items: center; gap: 14px; }
+    .qs-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .qs-value { font-size: 22px; font-weight: 700; color: #111827; }
+    .qs-label { font-size: 12px; color: #6b7280; margin-top: 1px; }
+
+    /* ── course cards ── */
+    .section-title { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 1rem; }
+    .courses { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; margin-bottom: 2rem; }
+
+    .course-card {
+      background: white; border-radius: 14px;
+      border: 1px solid #e5e7eb; padding: 1.25rem;
+      transition: box-shadow 0.15s;
+    }
+    .course-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+
+    .course-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+    .course-emoji { font-size: 28px; }
+    .course-grade { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 99px; }
+    .cg-a { background: #dcfce7; color: #15803d; }
+    .cg-b { background: #dbeafe; color: #1e40af; }
+    .cg-c { background: #fef9c3; color: #92400e; }
+
+    .course-name { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 3px; }
+    .course-teacher { font-size: 12px; color: #6b7280; margin-bottom: 12px; }
+
+    .bar-wrap { height: 6px; background: #f3f4f6; border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+    .bar-fill { height: 100%; border-radius: 99px; }
+    .bar-meta { display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; }
+
+    /* ── due soon ── */
+    .due-section { background: white; border-radius: 14px; border: 1px solid #e5e7eb; overflow: hidden; margin-bottom: 2rem; }
+    .due-header { padding: 1rem 1.25rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between; }
+    .due-header-title { font-size: 14px; font-weight: 600; color: #111827; }
+
+    .due-item { display: flex; align-items: center; gap: 14px; padding: 12px 1.25rem; border-bottom: 1px solid #f9fafb; }
+    .due-item:last-child { border-bottom: none; }
+    .due-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .due-name { font-size: 14px; font-weight: 500; color: #111827; flex: 1; }
+    .due-class { font-size: 12px; color: #6b7280; }
+    .due-tag { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+    .tag-red    { background: #fef2f2; color: #b91c1c; }
+    .tag-orange { background: #fff7ed; color: #c2410c; }
+    .tag-gray   { background: #f3f4f6; color: #374151; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:1.5rem">
+    <div class="logo">🎓 EduPortal</div>
+    <div class="top-nav">
+      <a href="dashboard-student.html" class="active">Home</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="#">Grades</a>
+      <a href="#">Schedule</a>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="avatar" id="avatar">S</div>
+    <div>
+      <div class="user-name" id="user-name">Student</div>
+      <div class="user-role">Learner</div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Log out</button>
+  </div>
+</header>
+
+<div class="hero">
+  <div>
+    <h1 id="welcome-msg">Hey there 👋</h1>
+    <p>You're doing great — keep the momentum going!</p>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-value">82%</div>
+      <div class="hero-stat-label">Overall grade</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-value">94%</div>
+      <div class="hero-stat-label">Attendance</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-value">3</div>
+      <div class="hero-stat-label">Due this week</div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="quick-stats">
+    <div class="qs-card">
+      <div class="qs-icon" style="background:#dcfce7">📚</div>
+      <div><div class="qs-value">4</div><div class="qs-label">Courses enrolled</div></div>
+    </div>
+    <div class="qs-card">
+      <div class="qs-icon" style="background:#dbeafe">📝</div>
+      <div><div class="qs-value">12</div><div class="qs-label">Assignments total</div></div>
+    </div>
+    <div class="qs-card">
+      <div class="qs-icon" style="background:#fef9c3">✅</div>
+      <div><div class="qs-value">9</div><div class="qs-label">Completed</div></div>
+    </div>
+  </div>
+
+  <div class="section-title">My courses</div>
+  <div class="courses">
+    <div class="course-card">
+      <div class="course-top">
+        <div class="course-emoji">📐</div>
+        <span class="course-grade cg-b">B+ · 85%</span>
+      </div>
+      <div class="course-name">Mathematics 101</div>
+      <div class="course-teacher">Ms. Johnson · Mon &amp; Wed</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:72%;background:#16a34a"></div></div>
+      <div class="bar-meta"><span>72% complete</span><span>8 weeks left</span></div>
+    </div>
+    <div class="course-card">
+      <div class="course-top">
+        <div class="course-emoji">⚗️</div>
+        <span class="course-grade cg-c">C+ · 73%</span>
+      </div>
+      <div class="course-name">Physics Fundamentals</div>
+      <div class="course-teacher">Mr. Lee · Tue &amp; Thu</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:58%;background:#f59e0b"></div></div>
+      <div class="bar-meta"><span>58% complete</span><span>10 weeks left</span></div>
+    </div>
+    <div class="course-card">
+      <div class="course-top">
+        <div class="course-emoji">📖</div>
+        <span class="course-grade cg-a">A · 91%</span>
+      </div>
+      <div class="course-name">English Literature</div>
+      <div class="course-teacher">Ms. Patel · Mon &amp; Fri</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:90%;background:#16a34a"></div></div>
+      <div class="bar-meta"><span>90% complete</span><span>2 weeks left</span></div>
+    </div>
+    <div class="course-card">
+      <div class="course-top">
+        <div class="course-emoji">🌍</div>
+        <span class="course-grade cg-b">B · 79%</span>
+      </div>
+      <div class="course-name">World History</div>
+      <div class="course-teacher">Mr. Garcia · Wed &amp; Fri</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:45%;background:#3b82f6"></div></div>
+      <div class="bar-meta"><span>45% complete</span><span>12 weeks left</span></div>
+    </div>
+  </div>
+
+  <div class="section-title">Due soon</div>
+  <div class="due-section">
+    <div class="due-header">
+      <span class="due-header-title">Upcoming assignments</span>
+      <a href="#" style="font-size:12px;color:#6b7280;text-decoration:none">View all</a>
+    </div>
+    <div class="due-item">
+      <div class="due-dot" style="background:#ef4444"></div>
+      <div style="flex:1"><div class="due-name">Problem Set 4</div><div class="due-class">Mathematics 101</div></div>
+      <span class="due-tag tag-red">Tomorrow</span>
+    </div>
+    <div class="due-item">
+      <div class="due-dot" style="background:#f97316"></div>
+      <div style="flex:1"><div class="due-name">Lab Report</div><div class="due-class">Physics Fundamentals</div></div>
+      <span class="due-tag tag-orange">In 3 days</span>
+    </div>
+    <div class="due-item">
+      <div class="due-dot" style="background:#9ca3af"></div>
+      <div style="flex:1"><div class="due-name">Essay — The Great Gatsby</div><div class="due-class">English Literature</div></div>
+      <span class="due-tag tag-gray">In 5 days</span>
+    </div>
+  </div>
+</main>
+
+<script>
+  const user = JSON.parse(sessionStorage.getItem('user') || 'null');
+  if (!user || user.role !== 'student') { window.location.href = 'index.html'; }
+  else {
+    const name = user.name.charAt(0).toUpperCase() + user.name.slice(1);
+    document.getElementById('user-name').textContent = name;
+    document.getElementById('avatar').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('welcome-msg').textContent = `Hey, ${name} 👋`;
+  }
+  function logout() { sessionStorage.removeItem('user'); window.location.href = 'index.html'; }
+</script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #1e1b4b; min-height: 100vh; display: flex; }
+
+    .sidebar { width: 220px; flex-shrink: 0; background: #13104a; display: flex; flex-direction: column; padding: 1.5rem 0; min-height: 100vh; }
+    .sidebar-logo { font-size: 17px; font-weight: 700; color: white; padding: 0 1.25rem 1.75rem; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .sidebar-logo span { color: #a5b4fc; }
+    nav { padding: 1rem 0.75rem; flex: 1; }
+    .nav-label { font-size: 10px; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase; padding: 0 0.5rem; margin-bottom: 6px; margin-top: 1rem; }
+    .nav-label:first-child { margin-top: 0; }
+    nav a { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px; font-size: 14px; color: #a5b4fc; text-decoration: none; transition: background 0.12s, color 0.12s; margin-bottom: 2px; }
+    nav a:hover { background: rgba(165,180,252,0.08); color: white; }
+    nav a.active { background: #4f46e5; color: white; font-weight: 500; }
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+    .sidebar-user { padding: 1rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 600; color: white; }
+    .sidebar-user-role { font-size: 11px; color: #818cf8; }
+    .logout-btn { margin-left: auto; background: none; border: none; color: #6366f1; font-size: 20px; cursor: pointer; }
+    .logout-btn:hover { color: #a5b4fc; }
+
+    .content { flex: 1; padding: 2rem; overflow-y: auto; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+    .topbar h1 { font-size: 22px; font-weight: 700; color: white; }
+    .topbar p  { font-size: 13px; color: #818cf8; margin-top: 2px; }
+    .btn-primary { background: #4f46e5; color: white; border: none; border-radius: 8px; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.15s; }
+    .btn-primary:hover { background: #4338ca; }
+
+    .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 2rem; }
+    .stat-card { background: #2d2a6e; border-radius: 12px; padding: 1.25rem; border: 1px solid rgba(165,180,252,0.1); }
+    .stat-icon { font-size: 22px; margin-bottom: 10px; }
+    .stat-value { font-size: 28px; font-weight: 700; color: white; }
+    .stat-label { font-size: 12px; color: #818cf8; margin-top: 3px; }
+    .stat-delta { font-size: 11px; margin-top: 6px; color: #4ade80; font-weight: 500; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .panel { background: #2d2a6e; border-radius: 12px; border: 1px solid rgba(165,180,252,0.1); overflow: hidden; }
+    .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(165,180,252,0.1); display: flex; align-items: center; justify-content: space-between; }
+    .panel-title { font-size: 14px; font-weight: 600; color: white; }
+    .panel-link { font-size: 12px; color: #818cf8; text-decoration: none; }
+    .panel-link:hover { color: #a5b4fc; }
+
+    .class-item { display: flex; align-items: center; gap: 12px; padding: 12px 1.25rem; border-bottom: 1px solid rgba(165,180,252,0.06); }
+    .class-item:last-child { border-bottom: none; }
+    .class-item:hover { background: rgba(165,180,252,0.05); }
+    .class-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .class-name { font-size: 14px; font-weight: 500; color: white; flex: 1; }
+    .class-meta { font-size: 12px; color: #818cf8; }
+    .class-badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px; }
+    .badge-active { background: rgba(74,222,128,0.15); color: #4ade80; }
+    .badge-draft  { background: rgba(251,191,36,0.15);  color: #fbbf24; }
+
+    .assign-item { padding: 12px 1.25rem; border-bottom: 1px solid rgba(165,180,252,0.06); }
+    .assign-item:last-child { border-bottom: none; }
+    .assign-title { font-size: 13px; font-weight: 500; color: white; }
+    .assign-sub { font-size: 12px; color: #818cf8; margin-top: 2px; }
+    .assign-row { display: flex; align-items: center; justify-content: space-between; }
+    .progress-bar { height: 4px; background: rgba(165,180,252,0.15); border-radius: 99px; margin-top: 8px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 99px; background: #6366f1; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: #818cf8; margin-top: 4px; }
+
+    .wide-panel { margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 1.25rem; font-size: 11px; font-weight: 600; color: #6366f1; text-transform: uppercase; letter-spacing: 0.06em; background: rgba(99,102,241,0.08); }
+    td { padding: 11px 1.25rem; font-size: 13px; color: #c7d2fe; border-bottom: 1px solid rgba(165,180,252,0.06); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(165,180,252,0.04); }
+    .student-name { color: white; font-weight: 500; }
+    .grade-pill { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 99px; display: inline-block; }
+    .grade-a { background: rgba(74,222,128,0.15); color: #4ade80; }
+    .grade-b { background: rgba(96,165,250,0.15);  color: #60a5fa; }
+    .grade-c { background: rgba(251,191,36,0.15);  color: #fbbf24; }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">🏫 <span>Edu</span>Portal</div>
+  <nav>
+    <div class="nav-label">Main</div>
+    <a href="dashboard-teacher.html" class="active"><span class="nav-icon">📊</span> Dashboard</a>
+    <a href="quiz.html"><span class="nav-icon">📝</span> Quiz manager</a>
+    <div class="nav-label">Manage</div>
+    <a href="#"><span class="nav-icon">👥</span> Students</a>
+    <a href="#"><span class="nav-icon">📚</span> Classes</a>
+    <a href="#"><span class="nav-icon">📋</span> Assignments</a>
+    <div class="nav-label">Tools</div>
+    <a href="#"><span class="nav-icon">📣</span> Announcements</a>
+    <a href="#"><span class="nav-icon">⚙️</span> Settings</a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="avatar" id="avatar">T</div>
+    <div>
+      <div class="sidebar-user-name" id="user-name">Teacher</div>
+      <div class="sidebar-user-role">Instructor</div>
+    </div>
+    <button class="logout-btn" onclick="logout()" title="Log out">↩</button>
+  </div>
+</aside>
+
+<div class="content">
+  <div class="topbar">
+    <div>
+      <h1 id="welcome-msg">Good morning 👋</h1>
+      <p>Here's what's happening with your classes today</p>
+    </div>
+    <button class="btn-primary" onclick="window.location.href='quiz.html'">+ Add quiz question</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-value">87</div>
+      <div class="stat-label">Total students</div>
+      <div class="stat-delta">↑ 3 this week</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📚</div>
+      <div class="stat-value">3</div>
+      <div class="stat-label">Active classes</div>
+      <div class="stat-delta">1 draft pending</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📋</div>
+      <div class="stat-value">4</div>
+      <div class="stat-label">Pending reviews</div>
+      <div class="stat-delta" style="color:#fbbf24">Needs attention</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📈</div>
+      <div class="stat-value">76%</div>
+      <div class="stat-label">Class avg grade</div>
+      <div class="stat-delta">↑ 2% from last month</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">My classes</span>
+        <a href="#" class="panel-link">Manage →</a>
+      </div>
+      <div class="class-item">
+        <div class="class-dot" style="background:#6366f1"></div>
+        <div style="flex:1"><div class="class-name">Mathematics 101</div><div class="class-meta">32 students · Mon 9:00 AM</div></div>
+        <span class="class-badge badge-active">Active</span>
+      </div>
+      <div class="class-item">
+        <div class="class-dot" style="background:#60a5fa"></div>
+        <div style="flex:1"><div class="class-name">Physics Fundamentals</div><div class="class-meta">28 students · Tue 11:00 AM</div></div>
+        <span class="class-badge badge-active">Active</span>
+      </div>
+      <div class="class-item">
+        <div class="class-dot" style="background:#fbbf24"></div>
+        <div style="flex:1"><div class="class-name">Advanced Calculus</div><div class="class-meta">27 students · Wed 2:00 PM</div></div>
+        <span class="class-badge badge-draft">Draft</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Assignments to review</span>
+        <a href="#" class="panel-link">View all →</a>
+      </div>
+      <div class="assign-item">
+        <div class="assign-row"><div class="assign-title">Problem Set 4</div><span style="font-size:12px;color:#4ade80">18/32</span></div>
+        <div class="assign-sub">Mathematics 101</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:56%"></div></div>
+        <div class="progress-label"><span>56% submitted</span><span>Due Mon</span></div>
+      </div>
+      <div class="assign-item">
+        <div class="assign-row"><div class="assign-title">Lab Report</div><span style="font-size:12px;color:#fbbf24">8/28</span></div>
+        <div class="assign-sub">Physics Fundamentals</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:29%;background:#fbbf24"></div></div>
+        <div class="progress-label"><span>29% submitted</span><span>Due Tue</span></div>
+      </div>
+      <div class="assign-item">
+        <div class="assign-row"><div class="assign-title">Essay — Relativity</div><span style="font-size:12px;color:#f87171">2/28</span></div>
+        <div class="assign-sub">Physics Fundamentals</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:7%;background:#f87171"></div></div>
+        <div class="progress-label"><span>7% submitted</span><span>Due Wed</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel wide-panel">
+    <div class="panel-header">
+      <span class="panel-title">Recent student activity</span>
+      <a href="#" class="panel-link">All students →</a>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Student</th><th>Class</th><th>Last active</th><th>Grade</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="student-name">Aria Thompson</td><td>Mathematics 101</td><td>Today, 10:32 AM</td><td><span class="grade-pill grade-a">A — 94%</span></td><td style="color:#4ade80">On track</td></tr>
+        <tr><td class="student-name">Ben Nakamura</td><td>Physics Fundamentals</td><td>Today, 9:15 AM</td><td><span class="grade-pill grade-b">B — 81%</span></td><td style="color:#4ade80">On track</td></tr>
+        <tr><td class="student-name">Chloe Martin</td><td>Mathematics 101</td><td>Yesterday</td><td><span class="grade-pill grade-c">C — 63%</span></td><td style="color:#fbbf24">Needs support</td></tr>
+        <tr><td class="student-name">David Osei</td><td>Advanced Calculus</td><td>2 days ago</td><td><span class="grade-pill grade-b">B+ — 88%</span></td><td style="color:#4ade80">On track</td></tr>
+        <tr><td class="student-name">Eva Rossi</td><td>Physics Fundamentals</td><td>3 days ago</td><td><span class="grade-pill grade-c">C — 58%</span></td><td style="color:#f87171">At risk</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const user = JSON.parse(sessionStorage.getItem('user') || 'null');
+  if (!user || user.role !== 'teacher') { window.location.href = 'index.html'; }
+  else {
+    const name = user.name.charAt(0).toUpperCase() + user.name.slice(1);
+    document.getElementById('user-name').textContent = name;
+    document.getElementById('avatar').textContent = name.charAt(0).toUpperCase();
+    const h = new Date().getHours();
+    const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    document.getElementById('welcome-msg').textContent = `${g}, ${name} 👋`;
+  }
+  function logout() { sessionStorage.removeItem('user'); window.location.href = 'index.html'; }
+</script>
+</body>
+</html>
